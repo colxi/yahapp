@@ -5,6 +5,7 @@ npm-debug.log*
 node_modules
 coverage
 *.local
+/dist
 
 .vscode/*
 !.vscode/extensions.json
