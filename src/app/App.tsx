@@ -19,7 +19,7 @@ export function App() {
         <HikesRepositoryProvider>
           <LocationProviderProvider>
             <MapProviderProvider>
-              <BrowserRouter>
+              <BrowserRouter basename={import.meta.env.BASE_URL}>
                 <Routes>
                   <Route element={<AppShell />}>
                     <Route index element={<HomeView />} />
