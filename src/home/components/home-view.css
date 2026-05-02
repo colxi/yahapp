@@ -1,0 +1,83 @@
+.home-view__header {
+  margin-bottom: 24px;
+}
+
+.home-view__greeting {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-info));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.home-view__cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  padding: 18px 22px;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.home-view__cta:hover {
+  opacity: 0.95;
+}
+
+.home-view__cta:active {
+  transform: scale(0.99);
+}
+
+.home-view__cta-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-view__section-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0 0 12px;
+}
+
+.home-view__recent {
+  margin-top: 24px;
+}
+
+.home-view__recent-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.home-view__recent-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.home-view__recent-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.home-view__recent-stats {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}

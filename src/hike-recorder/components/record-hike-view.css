@@ -1,0 +1,212 @@
+.record-view {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.record-view__map {
+  flex: 1;
+  min-height: 320px;
+  position: relative;
+}
+
+.record-view__panel {
+  position: relative;
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 60%;
+  overflow: auto;
+  transition: max-height 0.3s ease, padding 0.3s ease, transform 0.3s ease,
+    border-top-color 0.3s ease;
+  will-change: transform, max-height;
+}
+
+.record-view--map-only .record-view__panel {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  transform: translateY(100%);
+  border-top-color: transparent;
+  pointer-events: none;
+}
+
+.record-view__title {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.record-view__subtitle {
+  margin: 0 0 16px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.record-view__cta {
+  text-align: center;
+}
+
+.record-view__cta-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.record-view__cta-actions .button {
+  min-width: 200px;
+}
+
+.record-view__finish {
+  display: flex;
+  flex-direction: column;
+}
+
+.record-view__placement-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  flex: 1 1 auto;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  background: var(--color-border);
+}
+
+.pill--active {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border-color: var(--color-accent);
+}
+
+.record-view__actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.record-view__actions .button {
+  width: 100%;
+  padding: 12px 8px;
+  font-size: 14px;
+}
+
+.record-view__error {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.record-view__warning {
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.record-view__warning code {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.record-view__placement-banner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--color-bg-overlay);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  z-index: 5;
+}
+
+.record-view__placement-cancel {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.record-view__recenter {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-overlay);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+  z-index: 4;
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+
+.record-view__recenter:hover {
+  color: var(--color-accent);
+}
+
+.record-view__recenter:active {
+  transform: scale(0.95);
+}
+
+.record-view__locating {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg-overlay);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  z-index: 4;
+  box-shadow: var(--shadow-md);
+}
+
+.record-view__inline-button {
+  background: none;
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+}

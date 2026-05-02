@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Yahapp</string>
+    <string name="title_activity_main">Yahapp</string>
+    <string name="package_name">com.yahapp.app</string>
+    <string name="custom_url_scheme">com.yahapp.app</string>
+</resources>
