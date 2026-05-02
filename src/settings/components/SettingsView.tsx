@@ -3,6 +3,8 @@ import { useTheme } from '@/app/providers/use-theme';
 import { useSettings } from '../use-cases/use-settings';
 import { useHikesRepository } from '@/hike-storage/use-cases/use-hikes-repository';
 import { usePlatform } from '@/tools/platform/use-platform';
+import { exportHikes } from '@/hike-storage/use-cases/export-hikes';
+import { pickFileAndImport, type ImportResult } from '@/hike-storage/use-cases/import-hikes';
 import './settings-view.css';
 
 const PLATFORM_LABEL: Record<'web' | 'ios' | 'android', string> = {
@@ -17,6 +19,7 @@ export function SettingsView() {
   const repo = useHikesRepository();
   const platform = usePlatform();
   const [confirmingClear, setConfirmingClear] = useState(false);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
 
   return (
     <div className="view settings-view">
@@ -93,8 +96,50 @@ export function SettingsView() {
 
       <section className="settings-section">
         <h2 className="settings-section__title">Data</h2>
+        <div className="settings-actions">
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={() => {
+              const hikes = repo.list();
+              if (hikes.length === 0) {
+                setImportStatus('Nothing to export — no hikes saved.');
+                return;
+              }
+              exportHikes(hikes);
+              setImportStatus(`Exported ${hikes.length} hike${hikes.length > 1 ? 's' : ''}.`);
+            }}
+          >
+            Export hikes
+          </button>
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={async () => {
+              try {
+                setImportStatus(null);
+                const result: ImportResult = await pickFileAndImport(repo);
+                if (result.total === 0) {
+                  setImportStatus('The file contains no hikes.');
+                } else {
+                  setImportStatus(
+                    `Imported ${result.added} hike${result.added !== 1 ? 's' : ''}` +
+                    (result.skipped > 0 ? `, ${result.skipped} already existed` : '') +
+                    '.',
+                  );
+                }
+              } catch (err) {
+                setImportStatus(err instanceof Error ? err.message : 'Import failed.');
+              }
+            }}
+          >
+            Import hikes
+          </button>
+        </div>
+        {importStatus && <p className="settings-help">{importStatus}</p>}
+
         {confirmingClear ? (
-          <div className="settings-confirm">
+          <div className="settings-confirm" style={{ marginTop: 12 }}>
             <p>Delete all saved hikes? This cannot be undone.</p>
             <div className="settings-confirm__actions">
               <button
@@ -117,7 +162,7 @@ export function SettingsView() {
             </div>
           </div>
         ) : (
-          <div className="settings-actions">
+          <div className="settings-actions" style={{ marginTop: 12 }}>
             <button
               type="button"
               className="button button--ghost"

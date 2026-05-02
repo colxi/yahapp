@@ -4,6 +4,7 @@ import { useHikesRepository } from '@/hike-storage/use-cases/use-hikes-repositor
 import { useSettings } from '@/settings/use-cases/use-settings';
 import { formatDistance } from '@/settings/use-cases/format-units';
 import { formatDuration } from '@/tools/time/format-duration';
+import { pickFileAndImport, type ImportResult } from '@/hike-storage/use-cases/import-hikes';
 import type { Hike } from '@/hike-storage/types/hike';
 import './hikes-list-view.css';
 
@@ -12,9 +13,13 @@ export function HikesListView() {
   const { settings } = useSettings();
   const navigate = useNavigate();
   const [hikes, setHikes] = useState<Hike[]>([]);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+
+  const refreshHikes = () => setHikes(repo.list());
 
   useEffect(() => {
-    setHikes(repo.list());
+    refreshHikes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repo]);
 
   const total = useMemo(() => {
@@ -29,15 +34,42 @@ export function HikesListView() {
         {total.count} hike{total.count === 1 ? '' : 's'} · {formatDistance(total.distance, settings.units)}
       </p>
 
-      {hikes.length > 0 && (
+      <div className="hikes-list-actions">
+        {hikes.length > 0 && (
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={() => navigate('/history/all')}
+          >
+            View all on map
+          </button>
+        )}
         <button
           type="button"
-          className="button button--ghost button--block"
-          onClick={() => navigate('/history/all')}
+          className="button button--ghost"
+          onClick={async () => {
+            try {
+              setImportStatus(null);
+              const result: ImportResult = await pickFileAndImport(repo);
+              if (result.total === 0) {
+                setImportStatus('The file contains no hikes.');
+              } else {
+                setImportStatus(
+                  `Imported ${result.added} hike${result.added !== 1 ? 's' : ''}` +
+                  (result.skipped > 0 ? `, ${result.skipped} already existed` : '') +
+                  '.',
+                );
+                refreshHikes();
+              }
+            } catch (err) {
+              setImportStatus(err instanceof Error ? err.message : 'Import failed.');
+            }
+          }}
         >
-          View all on a single map
+          Import hike
         </button>
-      )}
+      </div>
+      {importStatus && <p className="hikes-import-status">{importStatus}</p>}
 
       {hikes.length === 0 ? (
         <div className="card hikes-empty">

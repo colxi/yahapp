@@ -48,6 +48,22 @@
   text-decoration: none;
 }
 
+.hike-detail__header-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.hike-detail__action-link {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hike-detail__action-link:hover {
+  color: var(--color-accent);
+}
+
 .hike-detail__delete {
   color: var(--color-danger);
   font-size: 13px;

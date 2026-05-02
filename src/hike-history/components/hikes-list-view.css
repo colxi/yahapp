@@ -1,3 +1,15 @@
+.hikes-list-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hikes-import-status {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 4px 0 0;
+}
+
 .hikes-empty {
   text-align: center;
   color: var(--color-text-muted);

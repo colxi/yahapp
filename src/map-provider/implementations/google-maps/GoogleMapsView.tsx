@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import type { MapViewProps } from '../../types/map-provider';
 import { googleMapsMapId, isGoogleMapsConfigured } from './api-key';
@@ -33,14 +33,39 @@ function BoundsController({ bounds }: { bounds?: MapViewProps['bounds'] }) {
   return null;
 }
 
+function NorthResetController({ tick }: { tick?: number }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || tick === undefined) return;
+    map.setHeading(0);
+  }, [map, tick]);
+  return null;
+}
+
+function DragDetector({ onUserDrag }: { onUserDrag?: () => void }) {
+  const map = useMap();
+  const callbackRef = useRef(onUserDrag);
+  callbackRef.current = onUserDrag;
+
+  useEffect(() => {
+    if (!map || !callbackRef.current) return;
+    const listener = map.addListener('dragstart', () => callbackRef.current?.());
+    return () => listener.remove();
+  }, [map]);
+
+  return null;
+}
+
 export function GoogleMapsView({
   center,
   zoom,
   bounds,
   followLocation,
+  resetNorthTick,
   className,
   cursor,
   onMapClick,
+  onUserDrag,
   children,
 }: MapViewProps) {
   if (!isGoogleMapsConfigured) {
@@ -75,7 +100,7 @@ export function GoogleMapsView({
         mapId={googleMapsMapId || undefined}
         mapTypeId="terrain"
         gestureHandling="greedy"
-        disableDefaultUI={false}
+        disableDefaultUI
         clickableIcons={false}
         streetViewControl={false}
         mapTypeControl={false}
@@ -92,6 +117,8 @@ export function GoogleMapsView({
       >
         <FollowController followLocation={followLocation} />
         <BoundsController bounds={bounds} />
+        <NorthResetController tick={resetNorthTick} />
+        <DragDetector onUserDrag={onUserDrag} />
         {children}
       </Map>
     </div>

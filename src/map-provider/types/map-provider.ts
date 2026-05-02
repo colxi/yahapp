@@ -23,9 +23,13 @@ export interface MapViewProps {
   zoom?: number;
   bounds?: BBox;
   followLocation?: LatLng | null;
+  /** Bump this number to reset the map heading so north points up. */
+  resetNorthTick?: number;
   className?: string;
   cursor?: 'default' | 'crosshair';
   onMapClick?: (location: LatLng) => void;
+  /** Fired when the user manually drags/pans the map. */
+  onUserDrag?: () => void;
   children?: ReactNode;
 }
 
@@ -38,6 +42,8 @@ export interface MarkerOverlayProps {
   position: LatLng;
   label?: string;
   variant?: 'default' | 'start' | 'end' | 'live' | 'destination' | 'checkpoint';
+  /** Compass heading in degrees (0–360, 0 = North). Shown as a direction cone on 'live' markers. */
+  heading?: number | null;
   onClick?: () => void;
 }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHikeRecorder } from '../hooks/use-hike-recorder';
 import { useWakeLock } from '../hooks/use-wake-lock';
@@ -7,6 +7,7 @@ import { MapFullscreenToggle } from '@/map-provider/components/MapFullscreenTogg
 import { useCurrentLocation } from '@/location-provider/use-cases/use-current-location';
 import { useSettings } from '@/settings/use-cases/use-settings';
 import { usePlatform } from '@/tools/platform/use-platform';
+import { useDeviceHeading } from '@/tools/orientation/use-device-heading';
 import { formatDuration } from '@/tools/time/format-duration';
 import { formatDistance, formatElevation, formatSpeed } from '@/settings/use-cases/format-units';
 import { HikeMetadataForm } from './HikeMetadataForm';
@@ -34,6 +35,7 @@ export function RecordHikeView() {
   const currentLocation = useCurrentLocation();
   const { settings } = useSettings();
   const platform = usePlatform();
+  const heading = useDeviceHeading();
   const navigate = useNavigate();
 
   const {
@@ -52,7 +54,11 @@ export function RecordHikeView() {
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null);
   const [sheet, setSheet] = useState<Sheet>({ kind: 'none' });
   const [recenterTick, setRecenterTick] = useState(0);
+  const [northTick, setNorthTick] = useState(0);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [following, setFollowing] = useState(true);
+
+  const handleUserDrag = useCallback(() => setFollowing(false), []);
 
   const points = hike?.points ?? [];
   const last = points[points.length - 1] ?? null;
@@ -68,13 +74,11 @@ export function RecordHikeView() {
     return null;
   }, [last, currentLocation.location]);
 
-  // Bumping recenterTick produces a fresh object identity so the map's
-  // FollowController re-pans even when the coordinates haven't changed.
   const followTarget = useMemo(() => {
-    if (placementMode || !livePosition) return null;
+    if (!following || placementMode || !livePosition) return null;
     return { lat: livePosition.lat, lng: livePosition.lng };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placementMode, livePosition?.lat, livePosition?.lng, recenterTick]);
+  }, [following, placementMode, livePosition?.lat, livePosition?.lng, recenterTick]);
 
   const handleMapClick = (location: { lat: number; lng: number }) => {
     if (!hike || !placementMode) return;
@@ -88,9 +92,11 @@ export function RecordHikeView() {
         <map.View
           center={livePosition ?? undefined}
           followLocation={followTarget}
+          resetNorthTick={northTick}
           zoom={15}
           cursor={placementMode ? 'crosshair' : 'default'}
           onMapClick={hike && placementMode ? handleMapClick : undefined}
+          onUserDrag={handleUserDrag}
         >
           {points.length > 1 && (
             <map.PathOverlay points={points.map((p) => ({ lat: p.lat, lng: p.lng }))} />
@@ -112,7 +118,7 @@ export function RecordHikeView() {
             />
           )}
           {livePosition && (
-            <map.MarkerOverlay position={livePosition} variant="live" label="You are here" />
+            <map.MarkerOverlay position={livePosition} variant="live" heading={heading} label="You are here" />
           )}
         </map.View>
 
@@ -130,31 +136,57 @@ export function RecordHikeView() {
         )}
 
         {!placementMode && livePosition && (
-          <button
-            type="button"
-            className="record-view__recenter"
-            onClick={() => setRecenterTick((t) => t + 1)}
-            aria-label="Center the map on your current location"
-            title="Center on me"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <circle cx="12" cy="12" r="3" fill="currentColor" />
-              <circle
-                cx="12"
-                cy="12"
-                r="8"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <path
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                d="M12 2v3M12 19v3M2 12h3M19 12h3"
-              />
-            </svg>
-          </button>
+          <>
+            <button
+              type="button"
+              className={`record-view__recenter${!following ? ' record-view__recenter--inactive' : ''}`}
+              onClick={() => {
+                setFollowing(true);
+                setRecenterTick((t) => t + 1);
+              }}
+              aria-label="Center the map on your current location"
+              title="Center on me"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" fill="currentColor" />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  d="M12 2v3M12 19v3M2 12h3M19 12h3"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="record-view__reset-north"
+              onClick={() => setNorthTick((t) => t + 1)}
+              aria-label="Reset map rotation so north points up"
+              title="North up"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M12 2 L16 10 H8 Z"
+                />
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  d="M12 10v10"
+                />
+              </svg>
+            </button>
+          </>
         )}
 
         {!hike && currentLocation.isLoading && (

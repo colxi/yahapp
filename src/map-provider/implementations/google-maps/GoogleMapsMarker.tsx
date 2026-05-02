@@ -1,4 +1,4 @@
-import { AdvancedMarker, Marker, Pin } from '@vis.gl/react-google-maps';
+import { AdvancedMarker, Marker } from '@vis.gl/react-google-maps';
 import type { MarkerOverlayProps } from '../../types/map-provider';
 import { isGoogleMapsConfigured, supportsAdvancedMarkers } from './api-key';
 
@@ -11,16 +11,103 @@ const palette: Record<NonNullable<MarkerOverlayProps['variant']>, { background: 
   checkpoint: { background: '#a78bfa', border: '#1e1b3a', glyph: '#1e1b3a' },
 };
 
-export function GoogleMapsMarker({ position, label, variant = 'default', onClick }: MarkerOverlayProps) {
+function LiveMarkerContent({ heading }: { heading?: number | null }) {
+  const hasHeading = typeof heading === 'number' && !Number.isNaN(heading);
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: 24,
+        height: 24,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {hasHeading && (
+        <div
+          style={{
+            position: 'absolute',
+            width: 48,
+            height: 48,
+            transform: `rotate(${heading}deg)`,
+            transition: 'transform 0.3s ease-out',
+            pointerEvents: 'none',
+          }}
+        >
+          <svg viewBox="0 0 48 48" width="48" height="48">
+            <path
+              d="M24 0 L34 20 Q24 16 14 20 Z"
+              fill="rgba(250, 204, 21, 0.35)"
+              stroke="rgba(250, 204, 21, 0.6)"
+              strokeWidth="1"
+            />
+          </svg>
+        </div>
+      )}
+      <div
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          background: palette.live.background,
+          border: `2.5px solid ${palette.live.border}`,
+          boxShadow: '0 0 0 3px rgba(250, 204, 21, 0.3)',
+          zIndex: 1,
+        }}
+      />
+    </div>
+  );
+}
+
+export function GoogleMapsMarker({ position, label, variant = 'default', heading, onClick }: MarkerOverlayProps) {
   if (!isGoogleMapsConfigured) return null;
 
   const colors = palette[variant];
+  const isLive = variant === 'live';
 
   if (supportsAdvancedMarkers) {
+    if (isLive) {
+      return (
+        <AdvancedMarker position={position} title={label} onClick={onClick}>
+          <LiveMarkerContent heading={heading} />
+        </AdvancedMarker>
+      );
+    }
+
     return (
       <AdvancedMarker position={position} title={label} onClick={onClick}>
-        <Pin background={colors.background} borderColor={colors.border} glyphColor={colors.glyph} />
+        <div
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            background: colors.background,
+            border: `2.5px solid ${colors.border}`,
+          }}
+        />
       </AdvancedMarker>
+    );
+  }
+
+  if (isLive && typeof heading === 'number' && !Number.isNaN(heading)) {
+    return (
+      <Marker
+        position={position}
+        title={label}
+        onClick={onClick}
+        icon={{
+          path: 'M 0,-12 L 6,0 -6,0 Z',
+          fillColor: colors.background,
+          fillOpacity: 1,
+          strokeColor: colors.border,
+          strokeWeight: 2,
+          scale: 1.4,
+          rotation: heading,
+          anchor: new google.maps.Point(0, 0),
+        }}
+      />
     );
   }
 
@@ -35,7 +122,7 @@ export function GoogleMapsMarker({ position, label, variant = 'default', onClick
         fillOpacity: 1,
         strokeColor: colors.border,
         strokeWeight: 2,
-        scale: variant === 'live' ? 8 : 7,
+        scale: isLive ? 8 : 7,
       }}
     />
   );

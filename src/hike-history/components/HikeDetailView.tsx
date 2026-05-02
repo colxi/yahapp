@@ -21,6 +21,7 @@ import type { Hike } from '@/hike-storage/types/hike';
 import type { Annotation } from '@/hike-storage/types/annotation';
 import { HikeMetadataForm } from '@/hike-recorder/components/HikeMetadataForm';
 import { AnnotationForm } from '@/hike-recorder/components/AnnotationForm';
+import { exportSingleHike } from '@/hike-storage/use-cases/export-hikes';
 import { bboxForHike } from '../use-cases/merge-bboxes';
 import '@/map-provider/components/map.css';
 import '@/hike-recorder/components/forms.css';
@@ -138,13 +139,22 @@ export function HikeDetailView() {
           <Link to="/history" className="hike-detail__back">
             ← History
           </Link>
-          <button
-            type="button"
-            className="hike-detail__delete"
-            onClick={() => setConfirmingDelete(true)}
-          >
-            Delete
-          </button>
+          <div className="hike-detail__header-actions">
+            <button
+              type="button"
+              className="hike-detail__action-link"
+              onClick={() => exportSingleHike(hike)}
+            >
+              Export
+            </button>
+            <button
+              type="button"
+              className="hike-detail__delete"
+              onClick={() => setConfirmingDelete(true)}
+            >
+              Delete
+            </button>
+          </div>
         </div>
 
         {sheet.kind === 'edit-metadata' ? (
