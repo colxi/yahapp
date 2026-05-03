@@ -42,21 +42,18 @@ export function useDeviceHeading(): {
     const e = event as OrientationEventWithWebkit;
     const now = Date.now();
     if (now - lastUpdate.current < THROTTLE_MS) return;
-    lastUpdate.current = now;
+
+    let value: number | undefined;
 
     if (typeof e.webkitCompassHeading === 'number' && !Number.isNaN(e.webkitCompassHeading)) {
-      setHeading(e.webkitCompassHeading);
-      return;
+      value = e.webkitCompassHeading;
+    } else if (typeof e.alpha === 'number') {
+      value = (360 - e.alpha) % 360;
     }
 
-    if (e.absolute && typeof e.alpha === 'number') {
-      setHeading((360 - e.alpha) % 360);
-      return;
-    }
-
-    // Non-absolute fallback: alpha still gives relative orientation on some browsers.
-    if (typeof e.alpha === 'number') {
-      setHeading((360 - e.alpha) % 360);
+    if (value !== undefined) {
+      lastUpdate.current = now;
+      setHeading(value);
     }
   }, []);
 
