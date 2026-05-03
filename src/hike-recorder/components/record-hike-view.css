@@ -217,6 +217,27 @@
   transform: scale(0.95);
 }
 
+.record-view__compass-prompt {
+  position: absolute;
+  top: 120px;
+  right: 16px;
+  background: var(--color-bg-overlay);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  z-index: 4;
+  transition: transform 0.1s ease;
+}
+
+.record-view__compass-prompt:active {
+  transform: scale(0.95);
+}
+
 .record-view__locating {
   position: absolute;
   top: 12px;

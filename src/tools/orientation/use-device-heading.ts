@@ -1,63 +1,90 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+const THROTTLE_MS = 100;
+
+type OrientationEventWithWebkit = DeviceOrientationEvent & {
+  webkitCompassHeading?: number;
+};
+
+function needsPermissionRequest(): boolean {
+  const DOE = DeviceOrientationEvent as unknown as {
+    requestPermission?: () => Promise<string>;
+  };
+  return typeof DOE.requestPermission === 'function';
+}
+
+function getEventName(): string {
+  if (typeof window !== 'undefined' && 'ondeviceorientationabsolute' in window) {
+    return 'deviceorientationabsolute';
+  }
+  return 'deviceorientation';
+}
 
 /**
- * Returns the device's compass heading in degrees (0–360, 0 = North, clockwise).
- * Uses the DeviceOrientation API on browsers and falls back to null when unavailable.
+ * Returns the device's compass heading in degrees (0–360, 0 = North, clockwise),
+ * and a `requestPermission` function that must be called from a user gesture on iOS 13+.
  *
  * On iOS Safari `webkitCompassHeading` gives a true-north bearing directly.
  * On Android / Chrome, the `deviceorientationabsolute` event is preferred;
  * heading is derived from `alpha` (360 − alpha).
  */
-export function useDeviceHeading(): number | null {
+export function useDeviceHeading(): {
+  heading: number | null;
+  permissionNeeded: boolean;
+  requestPermission: () => void;
+} {
   const [heading, setHeading] = useState<number | null>(null);
+  const [permissionNeeded, setPermissionNeeded] = useState(false);
+  const [granted, setGranted] = useState(!needsPermissionRequest());
   const lastUpdate = useRef(0);
+
+  const handleOrientation = useCallback((event: Event) => {
+    const e = event as OrientationEventWithWebkit;
+    const now = Date.now();
+    if (now - lastUpdate.current < THROTTLE_MS) return;
+    lastUpdate.current = now;
+
+    if (typeof e.webkitCompassHeading === 'number' && !Number.isNaN(e.webkitCompassHeading)) {
+      setHeading(e.webkitCompassHeading);
+      return;
+    }
+
+    if (e.absolute && typeof e.alpha === 'number') {
+      setHeading((360 - e.alpha) % 360);
+      return;
+    }
+
+    // Non-absolute fallback: alpha still gives relative orientation on some browsers.
+    if (typeof e.alpha === 'number') {
+      setHeading((360 - e.alpha) % 360);
+    }
+  }, []);
+
+  const requestPermission = useCallback(() => {
+    const DOE = DeviceOrientationEvent as unknown as {
+      requestPermission?: () => Promise<string>;
+    };
+    if (typeof DOE.requestPermission !== 'function') return;
+    DOE.requestPermission().then((state) => {
+      if (state === 'granted') {
+        setGranted(true);
+        setPermissionNeeded(false);
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const THROTTLE_MS = 100;
-
-    const handleOrientation = (event: DeviceOrientationEvent) => {
-      const now = Date.now();
-      if (now - lastUpdate.current < THROTTLE_MS) return;
-      lastUpdate.current = now;
-
-      // iOS Safari exposes a ready-made compass heading.
-      const webkit = (event as DeviceOrientationEvent & { webkitCompassHeading?: number })
-        .webkitCompassHeading;
-      if (typeof webkit === 'number' && !Number.isNaN(webkit)) {
-        setHeading(webkit);
-        return;
-      }
-
-      // Android / desktop: absolute alpha gives the compass bearing.
-      if (event.absolute && typeof event.alpha === 'number') {
-        setHeading((360 - event.alpha) % 360);
-      }
-    };
-
-    // Prefer the absolute event (Chrome/Android), fall back to the generic one (iOS).
-    let eventName: string = 'deviceorientation';
-    if ('ondeviceorientationabsolute' in window) {
-      eventName = 'deviceorientationabsolute';
+    if (needsPermissionRequest() && !granted) {
+      setPermissionNeeded(true);
+      return;
     }
 
-    window.addEventListener(eventName, handleOrientation as EventListener);
+    const eventName = getEventName();
+    window.addEventListener(eventName, handleOrientation);
+    return () => window.removeEventListener(eventName, handleOrientation);
+  }, [granted, handleOrientation]);
 
-    // iOS 13+ requires explicit permission.
-    const DOE = DeviceOrientationEvent as unknown as {
-      requestPermission?: () => Promise<'granted' | 'denied'>;
-    };
-    if (typeof DOE.requestPermission === 'function') {
-      DOE.requestPermission().catch(() => {
-        // Permission denied or not supported; heading stays null.
-      });
-    }
-
-    return () => {
-      window.removeEventListener(eventName, handleOrientation as EventListener);
-    };
-  }, []);
-
-  return heading;
+  return { heading, permissionNeeded, requestPermission };
 }

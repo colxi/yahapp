@@ -22,6 +22,7 @@ import type { Annotation } from '@/hike-storage/types/annotation';
 import { HikeMetadataForm } from '@/hike-recorder/components/HikeMetadataForm';
 import { AnnotationForm } from '@/hike-recorder/components/AnnotationForm';
 import { exportSingleHike } from '@/hike-storage/use-cases/export-hikes';
+import { ElevationProfile } from './ElevationProfile';
 import { bboxForHike } from '../use-cases/merge-bboxes';
 import '@/map-provider/components/map.css';
 import '@/hike-recorder/components/forms.css';
@@ -188,6 +189,8 @@ export function HikeDetailView() {
             </div>
           </>
         )}
+
+        <ElevationProfile points={hike.points} />
 
         <div className="stat-grid">
           <div className="stat">

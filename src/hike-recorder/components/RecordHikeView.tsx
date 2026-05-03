@@ -12,6 +12,7 @@ import { formatDuration } from '@/tools/time/format-duration';
 import { formatDistance, formatElevation, formatSpeed } from '@/settings/use-cases/format-units';
 import { HikeMetadataForm } from './HikeMetadataForm';
 import { AnnotationForm } from './AnnotationForm';
+import { ElevationProfile } from '@/hike-history/components/ElevationProfile';
 import '@/map-provider/components/map.css';
 import './forms.css';
 import './record-hike-view.css';
@@ -35,7 +36,7 @@ export function RecordHikeView() {
   const currentLocation = useCurrentLocation();
   const { settings } = useSettings();
   const platform = usePlatform();
-  const heading = useDeviceHeading();
+  const { heading, permissionNeeded, requestPermission: requestOrientationPermission } = useDeviceHeading();
   const navigate = useNavigate();
 
   const {
@@ -189,6 +190,16 @@ export function RecordHikeView() {
           </>
         )}
 
+        {permissionNeeded && (
+          <button
+            type="button"
+            className="record-view__compass-prompt"
+            onClick={requestOrientationPermission}
+          >
+            Enable compass
+          </button>
+        )}
+
         {!hike && currentLocation.isLoading && (
           <div className="record-view__locating">Finding your location…</div>
         )}
@@ -284,6 +295,7 @@ export function RecordHikeView() {
 
         {sheet.kind === 'none' && hike && (
           <>
+            <ElevationProfile points={points} />
             <div className="stat-grid">
               <div className="stat">
                 <div className="stat__label">Distance</div>
