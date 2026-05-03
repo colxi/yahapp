@@ -132,6 +132,8 @@ export function GoogleMapsView({
   onUserDrag,
   children,
 }: MapViewProps) {
+  const [mapHeading, setMapHeading] = useState(0);
+
   if (!isGoogleMapsConfigured) {
     return (
       <div className={`map-fallback${className ? ` ${className}` : ''}`} role="status">
@@ -155,8 +157,6 @@ export function GoogleMapsView({
   ]
     .filter(Boolean)
     .join(' ');
-
-  const [mapHeading, setMapHeading] = useState(0);
 
   return (
     <div className={containerClass}>
