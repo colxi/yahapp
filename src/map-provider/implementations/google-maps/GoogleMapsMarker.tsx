@@ -29,19 +29,20 @@ function LiveMarkerContent({ heading }: { heading?: number | null }) {
         <div
           style={{
             position: 'absolute',
-            width: 48,
-            height: 48,
+            width: 80,
+            height: 80,
             transform: `rotate(${heading}deg)`,
             transition: 'transform 0.3s ease-out',
             pointerEvents: 'none',
           }}
         >
-          <svg viewBox="0 0 48 48" width="48" height="48">
+          <svg viewBox="0 0 80 80" width="80" height="80">
             <path
-              d="M24 0 L34 20 Q24 16 14 20 Z"
-              fill="rgba(250, 204, 21, 0.35)"
-              stroke="rgba(250, 204, 21, 0.6)"
-              strokeWidth="1"
+              d="M40 4 L56 34 Q40 28 24 34 Z"
+              fill="rgba(59, 130, 246, 0.45)"
+              stroke="rgba(59, 130, 246, 0.85)"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
             />
           </svg>
         </div>
