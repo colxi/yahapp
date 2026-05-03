@@ -59,22 +59,22 @@ function buildHikeFile(hike: Hike): File {
   return new File([json], `yahapp-${slug}.json`, { type: 'application/json' });
 }
 
-export function canShareFiles(): boolean {
-  return typeof navigator.share === 'function' && typeof navigator.canShare === 'function';
+export function canShare(): boolean {
+  return typeof navigator.share === 'function';
 }
 
 export async function shareHike(hike: Hike): Promise<void> {
-  const file = buildHikeFile(hike);
-  const data: ShareData = {
-    title: hike.name,
-    text: `Check out my hike "${hike.name}" recorded with Yahapp!`,
-    files: [file],
-  };
+  const text = `Check out my hike "${hike.name}" recorded with Yahapp!`;
 
-  if (navigator.canShare?.(data)) {
-    await navigator.share(data);
-  } else {
-    // Fallback: share without file if file sharing isn't supported.
-    await navigator.share({ title: data.title, text: data.text });
+  // Try sharing with the file attached first.
+  const file = buildHikeFile(hike);
+  const withFile: ShareData = { title: hike.name, text, files: [file] };
+
+  if (navigator.canShare?.(withFile)) {
+    await navigator.share(withFile);
+    return;
   }
+
+  // Fallback: share text only.
+  await navigator.share({ title: hike.name, text });
 }
