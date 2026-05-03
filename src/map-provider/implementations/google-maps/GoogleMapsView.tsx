@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import type { MapViewProps } from '../../types/map-provider';
 import { googleMapsMapId, isGoogleMapsConfigured } from './api-key';
