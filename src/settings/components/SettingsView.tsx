@@ -3,6 +3,7 @@ import { useTheme } from '@/app/providers/use-theme';
 import { useSettings } from '../use-cases/use-settings';
 import { useHikesRepository } from '@/hike-storage/use-cases/use-hikes-repository';
 import { usePlatform } from '@/tools/platform/use-platform';
+import { usePermissionsStatus, type PermState } from '@/tools/permissions/use-permissions-status';
 import { exportHikes } from '@/hike-storage/use-cases/export-hikes';
 import { pickFileAndImport, type ImportResult } from '@/hike-storage/use-cases/import-hikes';
 import './settings-view.css';
@@ -13,11 +14,20 @@ const PLATFORM_LABEL: Record<'web' | 'ios' | 'android', string> = {
   android: 'Android native',
 };
 
+const PERM_LABEL: Record<PermState, string> = {
+  granted: 'Granted',
+  denied: 'Denied',
+  prompt: 'Not yet requested',
+  unknown: 'Unknown',
+  unsupported: 'Not available',
+};
+
 export function SettingsView() {
   const { settings, update, reset } = useSettings();
   const { mode, setMode } = useTheme();
   const repo = useHikesRepository();
   const platform = usePlatform();
+  const permissions = usePermissionsStatus();
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
@@ -178,6 +188,49 @@ export function SettingsView() {
               Clear all hikes
             </button>
           </div>
+        )}
+      </section>
+
+      <section className="settings-section">
+        <h2 className="settings-section__title">Permissions</h2>
+        <div className="settings-row">
+          <span className="settings-row__label">Location</span>
+          <span className={`settings-row__value settings-perm--${permissions.location}`}>
+            {PERM_LABEL[permissions.location]}
+          </span>
+        </div>
+        <div className="settings-row">
+          <span className="settings-row__label">Compass</span>
+          <span className={`settings-row__value settings-perm--${permissions.orientation}`}>
+            {PERM_LABEL[permissions.orientation]}
+          </span>
+        </div>
+        {(permissions.location !== 'granted' || permissions.orientation !== 'granted') && (
+          <div className="settings-actions" style={{ marginTop: 12 }}>
+            {permissions.location !== 'granted' && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={permissions.requestLocation}
+              >
+                Request location
+              </button>
+            )}
+            {permissions.orientation !== 'granted' && permissions.orientation !== 'unsupported' && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={permissions.requestOrientation}
+              >
+                Request compass
+              </button>
+            )}
+          </div>
+        )}
+        {permissions.location === 'denied' && (
+          <p className="settings-help">
+            Location was denied. You may need to enable it in your browser or device settings.
+          </p>
         )}
       </section>
 

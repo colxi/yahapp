@@ -91,6 +91,23 @@
   color: var(--color-warning);
 }
 
+.settings-perm--granted {
+  color: var(--color-accent);
+}
+
+.settings-perm--denied {
+  color: var(--color-danger);
+}
+
+.settings-perm--prompt,
+.settings-perm--unknown {
+  color: var(--color-warning);
+}
+
+.settings-perm--unsupported {
+  color: var(--color-text-dim);
+}
+
 .settings-section--footer {
   text-align: center;
 }
