@@ -257,7 +257,7 @@ export function SettingsView() {
       </section>
 
       <section className="settings-section settings-section--footer">
-        <p className="settings-help">Yahapp v0.1.0</p>
+        <p className="settings-help">Yahapp v{__APP_VERSION__}</p>
       </section>
     </div>
   );
