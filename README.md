@@ -108,6 +108,25 @@ The native projects under `ios/` and `android/` are committed to source control.
 - **iOS** (`ios/App/App/Info.plist`): `NSLocationWhenInUseUsageDescription`, `NSLocationAlwaysAndWhenInUseUsageDescription`, and `UIBackgroundModes` += `location` are pre-configured.
 - **Android** (`android/app/src/main/AndroidManifest.xml`): `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`, `FOREGROUND_SERVICE`, and `FOREGROUND_SERVICE_LOCATION` are pre-configured.
 
+## Debug helpers
+
+### Fake device orientation
+
+The compass heading (direction cone on the live marker) can be mocked from the browser console — useful on desktop where no real sensor exists:
+
+```javascript
+// Set heading to 45° (northeast)
+setDeviceOrientationMock(45)
+
+// Point south
+setDeviceOrientationMock(180)
+
+// Clear mock and resume real sensor data
+setDeviceOrientationMock(null)
+```
+
+The value takes effect immediately with no reload required.
+
 ## Adding a new map provider
 
 1. Implement `MapProvider` in `src/map-provider/implementations/<id>/`.
