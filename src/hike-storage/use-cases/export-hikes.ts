@@ -47,3 +47,34 @@ export function exportSingleHike(hike: Hike): void {
   const slug = slugify(hike.name) || 'hike';
   triggerDownload(json, `yahapp-${slug}.json`);
 }
+
+function buildHikeFile(hike: Hike): File {
+  const payload: ExportPayload = {
+    schemaVersion: 1,
+    exportedAt: new Date().toISOString(),
+    hikes: [hike],
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const slug = slugify(hike.name) || 'hike';
+  return new File([json], `yahapp-${slug}.json`, { type: 'application/json' });
+}
+
+export function canShareFiles(): boolean {
+  return typeof navigator.share === 'function' && typeof navigator.canShare === 'function';
+}
+
+export async function shareHike(hike: Hike): Promise<void> {
+  const file = buildHikeFile(hike);
+  const data: ShareData = {
+    title: hike.name,
+    text: `Check out my hike "${hike.name}" recorded with Yahapp!`,
+    files: [file],
+  };
+
+  if (navigator.canShare?.(data)) {
+    await navigator.share(data);
+  } else {
+    // Fallback: share without file if file sharing isn't supported.
+    await navigator.share({ title: data.title, text: data.text });
+  }
+}

@@ -21,7 +21,7 @@ import type { Hike } from '@/hike-storage/types/hike';
 import type { Annotation } from '@/hike-storage/types/annotation';
 import { HikeMetadataForm } from '@/hike-recorder/components/HikeMetadataForm';
 import { AnnotationForm } from '@/hike-recorder/components/AnnotationForm';
-import { exportSingleHike } from '@/hike-storage/use-cases/export-hikes';
+import { exportSingleHike, shareHike, canShareFiles } from '@/hike-storage/use-cases/export-hikes';
 import { ElevationProfile } from './ElevationProfile';
 import { bboxForHike } from '../use-cases/merge-bboxes';
 import '@/map-provider/components/map.css';
@@ -141,6 +141,15 @@ export function HikeDetailView() {
             ← History
           </Link>
           <div className="hike-detail__header-actions">
+            {canShareFiles() && (
+              <button
+                type="button"
+                className="hike-detail__action-link"
+                onClick={() => shareHike(hike).catch(() => {})}
+              >
+                Share
+              </button>
+            )}
             <button
               type="button"
               className="hike-detail__action-link"
