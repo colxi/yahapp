@@ -53,7 +53,8 @@ export default defineConfig({
           },
           {
             urlPattern: ({ url }) =>
-              url.host.includes('maps.googleapis.com') || url.host.includes('maps.gstatic.com'),
+              (url.host.includes('maps.googleapis.com') || url.host.includes('maps.gstatic.com')) &&
+              !url.pathname.includes('gen_204'),
             handler: 'StaleWhileRevalidate',
             options: { cacheName: 'google-maps-sdk' },
           },
