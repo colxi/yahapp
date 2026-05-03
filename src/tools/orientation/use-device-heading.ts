@@ -2,6 +2,19 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const THROTTLE_MS = 100;
 
+let mockHeading: number | null = null;
+let lastKnownHeading: number | null = null;
+const mockListeners = new Set<(h: number | null) => void>();
+
+if (typeof window !== 'undefined') {
+  (window as unknown as Record<string, unknown>).setDeviceOrientationMock = (
+    degrees: number | null,
+  ) => {
+    mockHeading = typeof degrees === 'number' ? ((degrees % 360) + 360) % 360 : null;
+    mockListeners.forEach((fn) => fn(mockHeading));
+  };
+}
+
 type OrientationEventWithWebkit = DeviceOrientationEvent & {
   webkitCompassHeading?: number;
 };
@@ -33,10 +46,15 @@ export function useDeviceHeading(): {
   permissionNeeded: boolean;
   requestPermission: () => void;
 } {
-  const [heading, setHeading] = useState<number | null>(null);
+  const [heading, _setHeading] = useState<number | null>(lastKnownHeading);
   const [permissionNeeded, setPermissionNeeded] = useState(false);
   const [granted, setGranted] = useState(!needsPermissionRequest());
   const lastUpdate = useRef(0);
+
+  const setHeading = useCallback((value: number | null) => {
+    if (value !== null) lastKnownHeading = value;
+    _setHeading(value !== null ? value : lastKnownHeading);
+  }, []);
 
   const handleOrientation = useCallback((event: Event) => {
     const e = event as OrientationEventWithWebkit;
@@ -82,6 +100,13 @@ export function useDeviceHeading(): {
     window.addEventListener(eventName, handleOrientation);
     return () => window.removeEventListener(eventName, handleOrientation);
   }, [granted, handleOrientation]);
+
+  useEffect(() => {
+    const onMock = (h: number | null) => setHeading(h);
+    mockListeners.add(onMock);
+    if (mockHeading !== null) setHeading(mockHeading);
+    return () => { mockListeners.delete(onMock); };
+  }, []);
 
   return { heading, permissionNeeded, requestPermission };
 }
