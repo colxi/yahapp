@@ -67,7 +67,7 @@ function NorthCompassOverlay({ mapHeading }: { mapHeading: number }) {
         position: 'absolute',
         top: 12,
         left: 12,
-        zIndex: 1,
+        zIndex: 10,
         width: 36,
         height: 36,
         borderRadius: '50%',
@@ -159,7 +159,7 @@ export function GoogleMapsView({
   const [mapHeading, setMapHeading] = useState(0);
 
   return (
-    <div className={containerClass} style={{ position: 'relative' }}>
+    <div className={containerClass}>
       <NorthCompassOverlay mapHeading={mapHeading} />
       <Map
         defaultCenter={center ?? DEFAULT_CENTER}

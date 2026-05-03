@@ -6,7 +6,7 @@ const palette: Record<NonNullable<MarkerOverlayProps['variant']>, { background: 
   default: { background: '#4ade80', border: '#052e14', glyph: '#052e14' },
   start: { background: '#4ade80', border: '#052e14', glyph: '#052e14' },
   end: { background: '#f87171', border: '#3f1212', glyph: '#3f1212' },
-  live: { background: '#facc15', border: '#3f2d04', glyph: '#3f2d04' },
+  live: { background: '#3b82f6', border: '#1e3a5f', glyph: '#1e3a5f' },
   destination: { background: '#60a5fa', border: '#0c2238', glyph: '#0c2238' },
   checkpoint: { background: '#a78bfa', border: '#1e1b3a', glyph: '#1e1b3a' },
 };
@@ -54,7 +54,7 @@ function LiveMarkerContent({ heading }: { heading?: number | null }) {
           borderRadius: '50%',
           background: palette.live.background,
           border: `2.5px solid ${palette.live.border}`,
-          boxShadow: '0 0 0 3px rgba(250, 204, 21, 0.3)',
+          boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.35)',
           zIndex: 1,
         }}
       />
@@ -71,7 +71,7 @@ export function GoogleMapsMarker({ position, label, variant = 'default', heading
   if (supportsAdvancedMarkers) {
     if (isLive) {
       return (
-        <AdvancedMarker position={position} title={label} onClick={onClick}>
+        <AdvancedMarker position={position} title={label} onClick={onClick} zIndex={999}>
           <LiveMarkerContent heading={heading} />
         </AdvancedMarker>
       );
@@ -98,6 +98,7 @@ export function GoogleMapsMarker({ position, label, variant = 'default', heading
         position={position}
         title={label}
         onClick={onClick}
+        zIndex={999}
         icon={{
           path: 'M 0,-12 L 6,0 -6,0 Z',
           fillColor: colors.background,
@@ -117,6 +118,7 @@ export function GoogleMapsMarker({ position, label, variant = 'default', heading
       position={position}
       title={label}
       onClick={onClick}
+      zIndex={isLive ? 999 : undefined}
       icon={{
         path: google.maps.SymbolPath.CIRCLE,
         fillColor: colors.background,
