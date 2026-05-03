@@ -4,7 +4,13 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Yahapp - track your hikes on a map.",
+  "packageManager": "pnpm@9.12.3",
+  "engines": {
+    "node": ">=23",
+    "pnpm": ">=9"
+  },
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "release": "tsc -b && vite build --outDir docs --emptyOutDir",

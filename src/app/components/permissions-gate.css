@@ -1,0 +1,51 @@
+.permissions-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: 24px;
+}
+
+.permissions-gate__card {
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.permissions-gate__title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.permissions-gate__text {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.permissions-gate__button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.permissions-gate__skip {
+  font-size: 13px;
+  color: var(--color-text-dim);
+  font-weight: 500;
+  background: none;
+  padding: 4px 8px;
+}
+
+.permissions-gate__skip:hover {
+  color: var(--color-text-muted);
+}

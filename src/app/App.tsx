@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
+import { PermissionsGate } from './components/PermissionsGate';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { LocationProviderProvider } from '@/location-provider/use-cases/LocationProviderProvider';
 import { MapProviderProvider } from '@/map-provider/use-cases/MapProviderProvider';
@@ -18,21 +19,23 @@ export function App() {
       <SettingsProvider>
         <HikesRepositoryProvider>
           <LocationProviderProvider>
-            <MapProviderProvider>
-              <BrowserRouter basename={import.meta.env.BASE_URL}>
-                <Routes>
-                  <Route element={<AppShell />}>
-                    <Route index element={<HomeView />} />
-                    <Route path="record" element={<RecordHikeView />} />
-                    <Route path="history" element={<HikesListView />} />
-                    <Route path="history/all" element={<AllHikesView />} />
-                    <Route path="history/:id" element={<HikeDetailView />} />
-                    <Route path="settings" element={<SettingsView />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </MapProviderProvider>
+            <PermissionsGate>
+              <MapProviderProvider>
+                <BrowserRouter basename={import.meta.env.BASE_URL}>
+                  <Routes>
+                    <Route element={<AppShell />}>
+                      <Route index element={<HomeView />} />
+                      <Route path="record" element={<RecordHikeView />} />
+                      <Route path="history" element={<HikesListView />} />
+                      <Route path="history/all" element={<AllHikesView />} />
+                      <Route path="history/:id" element={<HikeDetailView />} />
+                      <Route path="settings" element={<SettingsView />} />
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Route>
+                  </Routes>
+                </BrowserRouter>
+              </MapProviderProvider>
+            </PermissionsGate>
           </LocationProviderProvider>
         </HikesRepositoryProvider>
       </SettingsProvider>
