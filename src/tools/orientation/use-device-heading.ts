@@ -17,6 +17,7 @@ if (typeof window !== 'undefined') {
 
 type OrientationEventWithWebkit = DeviceOrientationEvent & {
   webkitCompassHeading?: number;
+  webkitCompassAccuracy?: number;
 };
 
 function needsPermissionRequest(): boolean {
@@ -63,13 +64,15 @@ export function useDeviceHeading(): {
 
     let value: number | undefined;
 
-    if (typeof e.webkitCompassHeading === 'number' && !Number.isNaN(e.webkitCompassHeading)) {
+    const compassUnreliable = typeof e.webkitCompassAccuracy === 'number' && e.webkitCompassAccuracy < 0;
+
+    if (typeof e.webkitCompassHeading === 'number' && !Number.isNaN(e.webkitCompassHeading) && !compassUnreliable) {
       value = e.webkitCompassHeading;
-    } else if (typeof e.alpha === 'number') {
+    } else if (typeof e.alpha === 'number' && !Number.isNaN(e.alpha)) {
       value = (360 - e.alpha) % 360;
     }
 
-    if (value !== undefined) {
+    if (value !== undefined && !Number.isNaN(value)) {
       lastUpdate.current = now;
       setHeading(value);
     }
