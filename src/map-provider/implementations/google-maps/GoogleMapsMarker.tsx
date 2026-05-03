@@ -32,7 +32,7 @@ function LiveMarkerContent({ heading }: { heading?: number | null }) {
             width: 80,
             height: 80,
             transform: `rotate(${heading}deg)`,
-            transition: 'transform 0.3s ease-out',
+            transition: 'transform 0.12s linear',
             pointerEvents: 'none',
           }}
         >

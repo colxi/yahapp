@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import type { MapViewProps } from '../../types/map-provider';
 import { googleMapsMapId, isGoogleMapsConfigured } from './api-key';
@@ -40,6 +40,70 @@ function NorthResetController({ tick }: { tick?: number }) {
     map.setHeading(0);
   }, [map, tick]);
   return null;
+}
+
+function HeadingWatcher({ onChange }: { onChange: (heading: number) => void }) {
+  const map = useMap();
+  const cbRef = useRef(onChange);
+  cbRef.current = onChange;
+
+  useEffect(() => {
+    if (!map) return;
+    cbRef.current(map.getHeading() ?? 0);
+    const listener = map.addListener('heading_changed', () => {
+      cbRef.current(map.getHeading() ?? 0);
+    });
+    return () => listener.remove();
+  }, [map]);
+
+  return null;
+}
+
+function NorthCompassOverlay({ mapHeading }: { mapHeading: number }) {
+  const rotation = -mapHeading;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 12,
+        left: 12,
+        zIndex: 1,
+        width: 36,
+        height: 36,
+        borderRadius: '50%',
+        background: 'rgba(0,0,0,0.55)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+      }}
+    >
+      <svg
+        viewBox="0 0 36 36"
+        width="36"
+        height="36"
+        style={{
+          transform: `rotate(${rotation}deg)`,
+          transition: 'transform 0.15s linear',
+        }}
+      >
+        <polygon points="18,6 22,20 18,17 14,20" fill="#ef4444" />
+        <polygon points="18,30 14,20 18,23 22,20" fill="#d4d4d8" />
+        <text
+          x="18"
+          y="5"
+          textAnchor="middle"
+          fontSize="7"
+          fontWeight="700"
+          fill="#ef4444"
+          style={{ transform: `rotate(${-rotation}deg)`, transformOrigin: '18px 18px' }}
+        >
+          N
+        </text>
+      </svg>
+    </div>
+  );
 }
 
 function DragDetector({ onUserDrag }: { onUserDrag?: () => void }) {
@@ -92,8 +156,11 @@ export function GoogleMapsView({
     .filter(Boolean)
     .join(' ');
 
+  const [mapHeading, setMapHeading] = useState(0);
+
   return (
-    <div className={containerClass}>
+    <div className={containerClass} style={{ position: 'relative' }}>
+      <NorthCompassOverlay mapHeading={mapHeading} />
       <Map
         defaultCenter={center ?? DEFAULT_CENTER}
         defaultZoom={zoom ?? DEFAULT_ZOOM}
@@ -115,6 +182,7 @@ export function GoogleMapsView({
             : undefined
         }
       >
+        <HeadingWatcher onChange={setMapHeading} />
         <FollowController followLocation={followLocation} />
         <BoundsController bounds={bounds} />
         <NorthResetController tick={resetNorthTick} />
