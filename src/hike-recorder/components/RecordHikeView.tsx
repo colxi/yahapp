@@ -75,6 +75,9 @@ export function RecordHikeView() {
     return null;
   }, [last, currentLocation.location]);
 
+  // Prefer compass heading; fall back to GPS travel heading when moving.
+  const effectiveHeading = heading ?? last?.heading ?? null;
+
   const followTarget = useMemo(() => {
     if (!following || placementMode || !livePosition) return null;
     return { lat: livePosition.lat, lng: livePosition.lng };
@@ -119,7 +122,7 @@ export function RecordHikeView() {
             />
           )}
           {livePosition && (
-            <map.MarkerOverlay position={livePosition} variant="live" heading={heading} label="You are here" />
+            <map.MarkerOverlay position={livePosition} variant="live" heading={effectiveHeading} label="You are here" />
           )}
         </map.View>
 
