@@ -262,11 +262,6 @@ export function GoogleMapsView({
 
   return (
     <div className={containerClass}>
-      <NorthCompassOverlay
-        mapHeading={mapHeading}
-        compassMode={compassMode}
-        onClick={handleCompassClick}
-      />
       <Map
         defaultCenter={center ?? DEFAULT_CENTER}
         defaultZoom={zoom ?? DEFAULT_ZOOM}
@@ -300,6 +295,11 @@ export function GoogleMapsView({
         <DragDetector onUserDrag={onUserDrag} />
         {children}
       </Map>
+      <NorthCompassOverlay
+        mapHeading={mapHeading}
+        compassMode={compassMode}
+        onClick={handleCompassClick}
+      />
     </div>
   );
 }
