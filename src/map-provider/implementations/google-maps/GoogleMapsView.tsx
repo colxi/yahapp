@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import type { MapViewProps } from '../../types/map-provider';
 import { googleMapsMapId, isGoogleMapsConfigured } from './api-key';
+import { useDeviceHeading } from '@/tools/orientation/use-device-heading';
 
 const DEFAULT_CENTER = { lat: 40.4168, lng: -3.7038 };
 const DEFAULT_ZOOM = 13;
+
+type CompassMode = 'north-up' | 'free' | 'follow-heading';
 
 function FollowController({ followLocation }: { followLocation?: MapViewProps['followLocation'] }) {
   const map = useMap();
@@ -59,10 +62,72 @@ function HeadingWatcher({ onChange }: { onChange: (heading: number) => void }) {
   return null;
 }
 
-function NorthCompassOverlay({ mapHeading }: { mapHeading: number }) {
-  const rotation = -mapHeading;
+function CompassModeController({
+  mode,
+  deviceHeading,
+  onModeOverride,
+}: {
+  mode: CompassMode;
+  deviceHeading: number | null;
+  onModeOverride: (mode: CompassMode) => void;
+}) {
+  const map = useMap();
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+
+  useEffect(() => {
+    if (!map || mode !== 'north-up') return;
+    map.setHeading(0);
+    const listener = map.addListener('heading_changed', () => {
+      if (modeRef.current !== 'north-up') return;
+      const current = map.getHeading() ?? 0;
+      if (Math.abs(current) > 0.1) map.setHeading(0);
+    });
+    return () => listener.remove();
+  }, [map, mode]);
+
+  useEffect(() => {
+    if (!map || mode !== 'follow-heading' || deviceHeading === null) return;
+    map.setHeading(deviceHeading);
+  }, [map, mode, deviceHeading]);
+
+  useEffect(() => {
+    if (!map || mode !== 'follow-heading') return;
+    const listener = map.addListener('dragstart', () => {
+      onModeOverride('free');
+    });
+    return () => listener.remove();
+  }, [map, mode, onModeOverride]);
+
+  return null;
+}
+
+function NorthCompassOverlay({
+  mapHeading,
+  compassMode,
+  onClick,
+}: {
+  mapHeading: number;
+  compassMode: CompassMode;
+  onClick: () => void;
+}) {
+  const displayHeading = compassMode === 'north-up' ? 0 : mapHeading;
+  const rotation = -displayHeading;
+  const isFollowing = compassMode === 'follow-heading';
+
   return (
     <div
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+      aria-label={
+        compassMode === 'north-up'
+          ? 'North up — tap to unlock rotation'
+          : compassMode === 'free'
+            ? 'Free rotation — tap to follow heading'
+            : 'Following heading — tap to lock north'
+      }
       style={{
         position: 'absolute',
         top: 12,
@@ -76,7 +141,11 @@ function NorthCompassOverlay({ mapHeading }: { mapHeading: number }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        pointerEvents: 'none',
+        cursor: 'pointer',
+        boxShadow: isFollowing
+          ? '0 0 0 2px #3b82f6, 0 0 8px rgba(59,130,246,0.4)'
+          : 'none',
+        transition: 'box-shadow 0.2s ease',
       }}
     >
       <svg
@@ -133,6 +202,39 @@ export function GoogleMapsView({
   children,
 }: MapViewProps) {
   const [mapHeading, setMapHeading] = useState(0);
+  const [compassMode, setCompassMode] = useState<CompassMode>('north-up');
+  const [pendingFollowHeading, setPendingFollowHeading] = useState(false);
+  const { heading: deviceHeading, permissionNeeded, requestPermission } = useDeviceHeading();
+
+  const handleCompassClick = useCallback(() => {
+    if (compassMode === 'north-up') {
+      setCompassMode('free');
+    } else if (compassMode === 'free') {
+      if (permissionNeeded) {
+        requestPermission();
+        setPendingFollowHeading(true);
+      } else {
+        setCompassMode('follow-heading');
+      }
+    } else {
+      setCompassMode('north-up');
+    }
+  }, [compassMode, permissionNeeded, requestPermission]);
+
+  useEffect(() => {
+    if (pendingFollowHeading && !permissionNeeded) {
+      setCompassMode('follow-heading');
+      setPendingFollowHeading(false);
+    }
+  }, [pendingFollowHeading, permissionNeeded]);
+
+  const prevResetTickRef = useRef(resetNorthTick);
+  useEffect(() => {
+    if (resetNorthTick !== undefined && resetNorthTick !== prevResetTickRef.current) {
+      prevResetTickRef.current = resetNorthTick;
+      setCompassMode('north-up');
+    }
+  }, [resetNorthTick]);
 
   if (!isGoogleMapsConfigured) {
     return (
@@ -160,7 +262,11 @@ export function GoogleMapsView({
 
   return (
     <div className={containerClass}>
-      <NorthCompassOverlay mapHeading={mapHeading} />
+      <NorthCompassOverlay
+        mapHeading={mapHeading}
+        compassMode={compassMode}
+        onClick={handleCompassClick}
+      />
       <Map
         defaultCenter={center ?? DEFAULT_CENTER}
         defaultZoom={zoom ?? DEFAULT_ZOOM}
@@ -183,6 +289,11 @@ export function GoogleMapsView({
         }
       >
         <HeadingWatcher onChange={setMapHeading} />
+        <CompassModeController
+          mode={compassMode}
+          deviceHeading={deviceHeading}
+          onModeOverride={setCompassMode}
+        />
         <FollowController followLocation={followLocation} />
         <BoundsController bounds={bounds} />
         <NorthResetController tick={resetNorthTick} />
