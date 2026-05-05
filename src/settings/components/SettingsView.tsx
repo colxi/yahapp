@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from '@/app/providers/use-theme';
 import { useSettings } from '../use-cases/use-settings';
 import { useHikesRepository } from '@/hike-storage/use-cases/use-hikes-repository';
@@ -6,6 +6,7 @@ import { usePlatform } from '@/tools/platform/use-platform';
 import { usePermissionsStatus, type PermState } from '@/tools/permissions/use-permissions-status';
 import { exportHikes } from '@/hike-storage/use-cases/export-hikes';
 import { pickFileAndImport, type ImportResult } from '@/hike-storage/use-cases/import-hikes';
+import { checkForUpdate, type UpdateCheckResult } from '@/tools/version/check-for-update';
 import './settings-view.css';
 
 const PLATFORM_LABEL: Record<'web' | 'ios' | 'android', string> = {
@@ -30,6 +31,12 @@ export function SettingsView() {
   const permissions = usePermissionsStatus();
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [updateCheck, setUpdateCheck] = useState<UpdateCheckResult | null>(null);
+  const [updateChecking, setUpdateChecking] = useState(false);
+
+  useEffect(() => {
+    checkForUpdate().then(setUpdateCheck).catch(() => {});
+  }, []);
 
   return (
     <div className="view settings-view">
@@ -254,6 +261,73 @@ export function SettingsView() {
             or fully suspended. For real background tracking, install the iOS or Android app.
           </p>
         )}
+      </section>
+
+      <section className="settings-section">
+        <h2 className="settings-section__title">Updates</h2>
+        <div className="settings-row">
+          <span className="settings-row__label">Running version</span>
+          <span className="settings-row__value">v{__APP_VERSION__}</span>
+        </div>
+        {updateCheck?.latest && (
+          <div className="settings-row">
+            <span className="settings-row__label">Latest version</span>
+            <span
+              className={`settings-row__value ${updateCheck.updateAvailable ? 'settings-perm--denied' : 'settings-perm--granted'}`}
+            >
+              v{updateCheck.latest}
+            </span>
+          </div>
+        )}
+        {updateCheck?.updateAvailable && (
+          <p className="settings-help settings-update-banner">
+            A newer version is available. Tap the button below to update.
+          </p>
+        )}
+        {updateCheck && !updateCheck.updateAvailable && updateCheck.latest && (
+          <p className="settings-help settings-perm--granted">You're on the latest version.</p>
+        )}
+        <div className="settings-actions" style={{ marginTop: 12 }}>
+          <button
+            type="button"
+            className="button button--ghost"
+            disabled={updateChecking}
+            onClick={async () => {
+              setUpdateChecking(true);
+              const result = await checkForUpdate();
+              setUpdateCheck(result);
+              setUpdateChecking(false);
+            }}
+          >
+            {updateChecking ? 'Checking…' : 'Check for updates'}
+          </button>
+          {updateCheck?.updateAvailable && (
+            <button
+              type="button"
+              className="button"
+              onClick={async () => {
+                try {
+                  if ('serviceWorker' in navigator) {
+                    const reg = await navigator.serviceWorker.getRegistration();
+                    if (reg) {
+                      await reg.update();
+                      if (reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                      }
+                    }
+                  }
+                  const keys = await caches.keys();
+                  await Promise.all(keys.map((k) => caches.delete(k)));
+                } catch {
+                  // best-effort
+                }
+                window.location.reload();
+              }}
+            >
+              Update & reload
+            </button>
+          )}
+        </div>
       </section>
 
       <section className="settings-section settings-section--footer">

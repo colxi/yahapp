@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
@@ -7,6 +7,19 @@ import { readFileSync } from 'node:fs';
 const base = '/yahapp/';
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
+function versionJsonPlugin(version: string): Plugin {
+  return {
+    name: 'version-json',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: JSON.stringify({ version, buildTime: new Date().toISOString() }),
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base,
   define: {
@@ -14,6 +27,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    versionJsonPlugin(pkg.version),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon.svg', 'icons/icon-maskable.svg'],
