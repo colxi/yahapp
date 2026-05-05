@@ -55,7 +55,6 @@ export function RecordHikeView() {
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null);
   const [sheet, setSheet] = useState<Sheet>({ kind: 'none' });
   const [recenterTick, setRecenterTick] = useState(0);
-  const [northTick, setNorthTick] = useState(0);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [following, setFollowing] = useState(true);
 
@@ -96,7 +95,6 @@ export function RecordHikeView() {
         <map.View
           center={livePosition ?? undefined}
           followLocation={followTarget}
-          resetNorthTick={northTick}
           zoom={15}
           cursor={placementMode ? 'crosshair' : 'default'}
           onMapClick={hike && placementMode ? handleMapClick : undefined}
@@ -166,27 +164,6 @@ export function RecordHikeView() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   d="M12 2v3M12 19v3M2 12h3M19 12h3"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="record-view__reset-north"
-              onClick={() => setNorthTick((t) => t + 1)}
-              aria-label="Reset map rotation so north points up"
-              title="North up"
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  d="M12 2 L16 10 H8 Z"
-                />
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  d="M12 10v10"
                 />
               </svg>
             </button>

@@ -23,8 +23,6 @@ export interface MapViewProps {
   zoom?: number;
   bounds?: BBox;
   followLocation?: LatLng | null;
-  /** Bump this number to reset the map heading so north points up. */
-  resetNorthTick?: number;
   className?: string;
   cursor?: 'default' | 'crosshair';
   onMapClick?: (location: LatLng) => void;

@@ -22,41 +22,36 @@ function BoundsController({ bounds }: { bounds?: MapViewProps['bounds'] }) {
   const map = useMap()
   useEffect(() => {
     if (!map || !bounds) return
-    const padding = 64
     map.fitBounds(
-      {
-        north: bounds.north,
-        south: bounds.south,
-        east: bounds.east,
-        west: bounds.west,
-      },
-      padding,
+      { north: bounds.north, south: bounds.south, east: bounds.east, west: bounds.west },
+      64,
     )
   }, [map, bounds])
   return null
 }
 
-function NorthResetController({ tick }: { tick?: number }) {
-  const map = useMap()
-  useEffect(() => {
-    if (!map || tick === undefined) return
-    map.setHeading(0)
-  }, [map, tick])
-  return null
-}
-
-function HeadingWatcher({ onChange }: { onChange: (heading: number) => void }) {
+/**
+ * Polls map heading every 200ms instead of using heading_changed events,
+ * which cause infinite recursion when combined with programmatic setHeading.
+ */
+function HeadingPoller({ onChange }: { onChange: (heading: number) => void }) {
   const map = useMap()
   const cbRef = useRef(onChange)
   cbRef.current = onChange
+  const prevRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!map) return
-    cbRef.current(map.getHeading() ?? 0)
-    const listener = map.addListener('heading_changed', () => {
-      cbRef.current(map.getHeading() ?? 0)
-    })
-    return () => listener.remove()
+    const poll = () => {
+      const h = Math.round(map.getHeading() ?? 0)
+      if (h !== prevRef.current) {
+        prevRef.current = h
+        cbRef.current(h)
+      }
+    }
+    poll()
+    const id = setInterval(poll, 200)
+    return () => clearInterval(id)
   }, [map])
 
   return null
@@ -72,18 +67,10 @@ function CompassModeController({
   onModeOverride: (mode: CompassMode) => void
 }) {
   const map = useMap()
-  const modeRef = useRef(mode)
-  modeRef.current = mode
 
   useEffect(() => {
     if (!map || mode !== 'north-up') return
     map.setHeading(0)
-    const listener = map.addListener('heading_changed', () => {
-      if (modeRef.current !== 'north-up') return
-      const current = map.getHeading() ?? 0
-      if (Math.abs(current) > 0.1) map.setHeading(0)
-    })
-    return () => listener.remove()
   }, [map, mode])
 
   useEffect(() => {
@@ -93,13 +80,23 @@ function CompassModeController({
 
   useEffect(() => {
     if (!map || mode !== 'follow-heading') return
-    const listener = map.addListener('dragstart', () => {
-      onModeOverride('free')
-    })
+    const listener = map.addListener('dragstart', () => onModeOverride('free'))
     return () => listener.remove()
   }, [map, mode, onModeOverride])
 
   return null
+}
+
+const MODE_RING: Record<CompassMode, string> = {
+  'north-up': 'none',
+  'free': '0 0 0 2px rgba(255,255,255,0.5)',
+  'follow-heading': '0 0 0 2px #3b82f6, 0 0 8px rgba(59,130,246,0.4)',
+}
+
+const MODE_LABEL: Record<CompassMode, string> = {
+  'north-up': 'North up — tap to unlock rotation',
+  'free': 'Free rotation — tap to follow heading',
+  'follow-heading': 'Following heading — tap to lock north',
 }
 
 function NorthCompassOverlay({
@@ -113,7 +110,7 @@ function NorthCompassOverlay({
 }) {
   const displayHeading = compassMode === 'north-up' ? 0 : mapHeading
   const rotation = -displayHeading
-  const isFollowing = compassMode === 'follow-heading'
+  const needleColor = compassMode === 'follow-heading' ? '#3b82f6' : '#ef4444'
 
   return (
     <div
@@ -121,20 +118,14 @@ function NorthCompassOverlay({
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick() }}
-      aria-label={
-        compassMode === 'north-up'
-          ? 'North up — tap to unlock rotation'
-          : compassMode === 'free'
-            ? 'Free rotation — tap to follow heading'
-            : 'Following heading — tap to lock north'
-      }
+      aria-label={MODE_LABEL[compassMode]}
       style={{
         position: 'absolute',
         top: 12,
         left: 12,
         zIndex: 10,
-        width: 36,
-        height: 36,
+        width: 40,
+        height: 40,
         borderRadius: '50%',
         background: 'rgba(0,0,0,0.55)',
         backdropFilter: 'blur(4px)',
@@ -142,22 +133,20 @@ function NorthCompassOverlay({
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        boxShadow: isFollowing
-          ? '0 0 0 2px #3b82f6, 0 0 8px rgba(59,130,246,0.4)'
-          : 'none',
-        transition: 'box-shadow 0.2s ease',
+        boxShadow: MODE_RING[compassMode],
+        transition: 'box-shadow 0.25s ease',
       }}
     >
       <svg
         viewBox="0 0 36 36"
-        width="36"
-        height="36"
+        width="32"
+        height="32"
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: 'transform 0.15s linear',
         }}
       >
-        <polygon points="18,6 22,20 18,17 14,20" fill="#ef4444" />
+        <polygon points="18,6 22,20 18,17 14,20" fill={needleColor} />
         <polygon points="18,30 14,20 18,23 22,20" fill="#d4d4d8" />
         <text
           x="18"
@@ -165,12 +154,26 @@ function NorthCompassOverlay({
           textAnchor="middle"
           fontSize="7"
           fontWeight="700"
-          fill="#ef4444"
+          fill={needleColor}
           style={{ transform: `rotate(${-rotation}deg)`, transformOrigin: '18px 18px' }}
         >
           N
         </text>
       </svg>
+      {compassMode !== 'north-up' && (
+        <span
+          style={{
+            position: 'absolute',
+            bottom: -2,
+            right: -2,
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            background: compassMode === 'follow-heading' ? '#3b82f6' : '#fff',
+            border: '2px solid rgba(0,0,0,0.6)',
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -194,7 +197,6 @@ export function GoogleMapsView({
   zoom,
   bounds,
   followLocation,
-  resetNorthTick,
   className,
   cursor,
   onMapClick,
@@ -228,24 +230,14 @@ export function GoogleMapsView({
     }
   }, [pendingFollowHeading, permissionNeeded])
 
-  const prevResetTickRef = useRef(resetNorthTick)
-  useEffect(() => {
-    if (resetNorthTick !== undefined && resetNorthTick !== prevResetTickRef.current) {
-      prevResetTickRef.current = resetNorthTick
-      setCompassMode('north-up')
-    }
-  }, [resetNorthTick])
-
   if (!isGoogleMapsConfigured) {
     return (
       <div className={`map-fallback${className ? ` ${className}` : ''}`} role="status">
         <div>
+          <p><strong>Google Maps is not configured.</strong></p>
           <p>
-            <strong>Google Maps is not configured.</strong>
-          </p>
-          <p>
-            Set <code>VITE_GOOGLE_MAPS_API_KEY</code> in <code>.env</code> and restart the dev server to
-            enable the map.
+            Set <code>VITE_GOOGLE_MAPS_API_KEY</code> in <code>.env</code> and restart the dev
+            server to enable the map.
           </p>
         </div>
       </div>
@@ -278,13 +270,13 @@ export function GoogleMapsView({
           onClick={
             onMapClick
               ? (event) => {
-                const latLng = event.detail.latLng
-                if (latLng) onMapClick({ lat: latLng.lat, lng: latLng.lng })
-              }
+                  const latLng = event.detail.latLng
+                  if (latLng) onMapClick({ lat: latLng.lat, lng: latLng.lng })
+                }
               : undefined
           }
         >
-          <HeadingWatcher onChange={setMapHeading} />
+          <HeadingPoller onChange={setMapHeading} />
           <CompassModeController
             mode={compassMode}
             deviceHeading={deviceHeading}
@@ -292,7 +284,6 @@ export function GoogleMapsView({
           />
           <FollowController followLocation={followLocation} />
           <BoundsController bounds={bounds} />
-          <NorthResetController tick={resetNorthTick} />
           <DragDetector onUserDrag={onUserDrag} />
           {children}
         </Map>

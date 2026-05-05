@@ -190,32 +190,6 @@
   border-color: var(--color-text-dim);
 }
 
-.record-view__reset-north {
-  position: absolute;
-  top: 68px;
-  right: 16px;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-overlay);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
-  z-index: 4;
-  transition: color 0.15s ease, transform 0.1s ease;
-}
-
-.record-view__reset-north:hover {
-  color: var(--color-accent);
-}
-
-.record-view__reset-north:active {
-  transform: scale(0.95);
-}
 
 .record-view__compass-prompt {
   position: absolute;
