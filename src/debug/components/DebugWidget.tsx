@@ -1,14 +1,16 @@
-import { useContext } from 'react';
-import { DebugContext } from '../use-cases/debug-context';
+import { isDebugEnabled, useDebugStore } from '../use-cases/debug-store';
 import { DebugMiniMap } from './DebugMiniMap';
 import { DebugCompass } from './DebugCompass';
 import './debug-widget.css';
 
 export function DebugWidget() {
-  const debug = useContext(DebugContext);
-  if (!debug) return null;
+  if (!isDebugEnabled) return null;
+  return <DebugWidgetInner />;
+}
 
-  const { isPanelOpen, setIsPanelOpen } = debug;
+function DebugWidgetInner() {
+  const { isPanelOpen, setIsPanelOpen, mockCoordinates, setMockCoordinates, mockHeading, setMockHeading } =
+    useDebugStore();
 
   return (
     <div className={`debug-widget ${isPanelOpen ? 'debug-widget--open' : ''}`}>
@@ -42,9 +44,9 @@ export function DebugWidget() {
             <h3 className="debug-widget__section-title">Mock Coordinates</h3>
             <p className="debug-widget__hint">Click on the map to set device position</p>
             <DebugMiniMap
-              coordinates={debug.mockCoordinates}
-              onChange={debug.setMockCoordinates}
-              onReset={() => debug.setMockCoordinates(null)}
+              coordinates={mockCoordinates}
+              onChange={setMockCoordinates}
+              onReset={() => setMockCoordinates(null)}
             />
           </section>
 
@@ -52,9 +54,9 @@ export function DebugWidget() {
             <h3 className="debug-widget__section-title">Mock Orientation</h3>
             <p className="debug-widget__hint">Click &amp; drag to rotate the compass needle</p>
             <DebugCompass
-              heading={debug.mockHeading}
-              onChange={debug.setMockHeading}
-              onReset={() => debug.setMockHeading(null)}
+              heading={mockHeading}
+              onChange={setMockHeading}
+              onReset={() => setMockHeading(null)}
             />
           </section>
         </div>

@@ -34,7 +34,9 @@
     "@vis.gl/react-google-maps": "^1.8.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.14.2"
+    "react-router-dom": "^7.14.2",
+    "immer": "^11.1.7",
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.1",
