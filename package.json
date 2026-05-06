@@ -12,8 +12,8 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "release": "tsc -b && vite build --outDir docs --emptyOutDir",
+    "build": "tsc -b && vite build --mode production",
+    "release": "tsc -b && vite build --mode production --outDir docs --emptyOutDir",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "jest",

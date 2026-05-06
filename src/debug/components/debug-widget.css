@@ -1,0 +1,214 @@
+/* ── Only show on wide screens (desktop) ── */
+@media (max-width: 768px) {
+  .debug-widget {
+    display: none !important;
+  }
+}
+
+/* ── Container ── */
+.debug-widget {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: stretch;
+  pointer-events: none;
+}
+
+/* ── Toggle tab ── */
+.debug-widget__tab {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  writing-mode: vertical-lr;
+  padding: 12px 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.debug-widget__tab:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.debug-widget__tab svg {
+  transform: rotate(0deg);
+}
+
+.debug-widget__tab-label {
+  margin-top: 4px;
+}
+
+/* ── Panel ── */
+.debug-widget__panel {
+  width: 320px;
+  background: var(--color-bg);
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  pointer-events: auto;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.debug-widget--open .debug-widget__panel {
+  transform: translateX(0);
+}
+
+.debug-widget--open .debug-widget__tab {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border-color: var(--color-accent);
+}
+
+/* ── Header ── */
+.debug-widget__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.debug-widget__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.debug-widget__close {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.debug-widget__close:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── Content ── */
+.debug-widget__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* ── Section ── */
+.debug-widget__section {
+  margin-bottom: 24px;
+}
+
+.debug-widget__section:last-child {
+  margin-bottom: 0;
+}
+
+.debug-widget__section-title {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.debug-widget__hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+/* ── Mini map ── */
+.debug-minimap__map {
+  width: 100%;
+  height: 200px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.debug-minimap__readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.debug-minimap__value {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+}
+
+.debug-minimap__reset {
+  font-size: 11px;
+  color: var(--color-danger);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.debug-minimap__reset:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── Compass ── */
+.debug-compass {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.debug-compass svg {
+  display: block;
+}
+
+.debug-compass__readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.debug-compass__value {
+  font-size: 14px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.debug-compass__reset {
+  font-size: 11px;
+  color: var(--color-danger);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.debug-compass__reset:hover {
+  background: var(--color-surface-2);
+}
